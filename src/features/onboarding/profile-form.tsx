@@ -36,7 +36,11 @@ export function ProfileForm({ fields, errors, onChange }: Props) {
   }
   function selectField(name: FieldName, label: string, options: { value: string; label: string }[], hint?: string) {
     return <Field name={name} label={label} hint={hint} error={errors[name]}>
-      <Select name={name} value={fields[name]} onValueChange={(value) => onChange(name, value)}>
+      <Select name={name} value={fields[name]} onValueChange={(value) => {
+        // The form's hidden native select can emit an empty value while syncing.
+        // Every selectable option is nonempty; keep the user's confirmed choice.
+        if (value) onChange(name, value);
+      }}>
         <SelectTrigger {...accessibility(name, hint)} className="w-full min-w-0 bg-background/40 text-base data-[size=default]:h-11 md:text-sm">
           <SelectValue placeholder="Choose an option" />
         </SelectTrigger>

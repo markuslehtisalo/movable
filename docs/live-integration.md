@@ -2,7 +2,7 @@
 
 ## Release decision
 
-The user prioritized a public deployment and declined taking over the UI agents' files. Feature files remain unchanged. `vercel.json` intentionally deploys the working, clearly labeled local/browser prototype. `/demo` stays isolated in memory. Credentials and local environment files are excluded by `.vercelignore`.
+The user subsequently authorized integration of the finished feature files and prioritized the complete live release. Onboarding, marketing and workspace now support live account mode. `/demo` stays isolated in memory. Credentials and local environment files are excluded by `.vercelignore`.
 
 ## Implemented and deployed to development Convex
 
@@ -22,14 +22,18 @@ The user prioritized a public deployment and declined taking over the UI agents'
 - `node scripts/smoke-live.mjs`: passed against development Convex and real OpenAI requests. Checks anonymous rejection, two synthetic authenticated identities, foreign move/task rejection, idempotent creation, extraction, plan generation, source presence, completion persistence, conversation date/housing changes, retries, and message drafts. The script cleans up its synthetic data.
 - This is backend identity isolation testing, not a two-person Clerk browser sign-in test. Full live browser QA is still pending.
 
-## Remaining feature integration
+## Completed feature integration
 
-`docs/live-ui-integration.patch` is prepared for the feature owners. It removes onboarding's unconditional live-mode disabled states, updates local-only copy by mode and enables the live empty-workspace CTA. It has not been applied or tested as a feature change. The owners should also scope persisted onboarding attempts to the account/mode so an old local or other-account attempt cannot be reused, and update marketing's current local-prototype copy before a live account release.
-
-Do not turn the public deployment to live mode until these UI changes and a real Clerk browser sign-in have been checked. Vercel's local-mode overrides in `vercel.json` must then be removed, with the Clerk and Convex frontend environment variables configured on the intended deployment.
+- Removed onboarding's live-mode disabled states and enabled the live empty-workspace CTA.
+- Updated marketing, onboarding and assistant copy to distinguish live AI/account storage from the scripted public example.
+- Scoped session drafts and saved build attempts by account; preserved marketing text through Clerk redirects.
+- Removed the deployment's forced local-mode override and configured Vercel production plus release-branch preview variables.
+- Repository-local Git identity now uses the owner's GitHub noreply address. A new release commit replaces the invalid macOS-local author for deployment checks; existing history is preserved.
+- Real native Clerk session token accepted by Convex. The configured native integration does not need the legacy `convex` JWT template.
+- Final checks: ESLint and TypeScript passed; all 19 shared/onboarding tests passed, including account-scoped attempt recovery. Local webpack production build passed. Vercel's normal Turbopack build passed; local Turbopack cannot follow this temporary worktree's external node_modules symlink.
 
 ## Operations
 
-`pnpm exec convex dev --once` deploys the backend to the currently selected development deployment. The user's existing watcher can continue running. No extra Next.js dev server was started. No branch, commit, staging or dependency installation was performed.
+`pnpm exec convex dev --once` deploys the backend to the currently selected development deployment. The user's existing watcher can continue running. No extra Next.js dev server was started. Integration is isolated in `/private/tmp/movable-improvement` on `integration/live-release`; no dependencies were added.
 
-Vercel login was refreshed. The production project is `lzrd-tech/movable`, publicly available at https://movable-lilac.vercel.app. The deployment completed successfully and both `/` and `/demo` returned HTTP 200. The public site remains in local/browser-prototype mode as described above.
+Vercel login was refreshed. The production project is `lzrd-tech/movable`, publicly available at https://movable-lilac.vercel.app. Both `usemovable.com` and `www.usemovable.com` resolve to Vercel with working HTTPS. The live release's hosted build succeeded; browser verification and domain promotion are the final release checks.

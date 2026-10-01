@@ -20,7 +20,7 @@ The user subsequently authorized integration of the finished feature files and p
 - `pnpm exec tsx --test src/features/onboarding/onboarding.test.ts`: all 6 passed.
 - `pnpm build`: passed in local release mode.
 - `node scripts/smoke-live.mjs`: passed against development Convex and real OpenAI requests. Checks anonymous rejection, two synthetic authenticated identities, foreign move/task rejection, idempotent creation, extraction, plan generation, source presence, completion persistence, conversation date/housing changes, retries, and message drafts. The script cleans up its synthetic data.
-- This is backend identity isolation testing, not a two-person Clerk browser sign-in test. Full live browser QA is still pending.
+- This is backend identity isolation testing, not a two-person Clerk browser sign-in test. Hosted browser verification now also passes: real Clerk test-user sign-in, marketing draft recovery, AI profile extraction, country selection by keyboard, plan generation, task completion, conversation arrival/housing updates, receipts, and persistence after refresh.
 
 ## Completed feature integration
 
@@ -36,4 +36,12 @@ The user subsequently authorized integration of the finished feature files and p
 
 `pnpm exec convex dev --once` deploys the backend to the currently selected development deployment. The user's existing watcher can continue running. No extra Next.js dev server was started. Integration is isolated in `/private/tmp/movable-improvement` on `integration/live-release`; no dependencies were added.
 
-Vercel login was refreshed. The production project is `lzrd-tech/movable`, publicly available at https://movable-lilac.vercel.app. Both `usemovable.com` and `www.usemovable.com` resolve to Vercel with working HTTPS. The live release's hosted build succeeded; browser verification and domain promotion are the final release checks.
+Vercel login was refreshed. The production project is `lzrd-tech/movable`, publicly available at https://movable-lilac.vercel.app. Both `usemovable.com` and `www.usemovable.com` resolve to Vercel with working HTTPS. The live release's hosted build succeeded; the tested live deployment was promoted to the production domains on 1 October 2026.
+
+## Final hosted review
+
+- Tested deployment: `movable-e1h2hpb6u-lzrd-tech.vercel.app` (release commit `58c20f1`).
+- The browser test completed exchange details, then asked to arrive two weeks later and confirmed housing. The saved plan shows 29 January 2027, 2/12 completed tasks, and both action receipts after refresh.
+- Desktop workspace and 390 px public-demo screenshots were reviewed. The demo remains labeled scripted, starts separately at 1/12 complete, and does not replace the account move.
+- A development-only Clerk smoke account and its synthetic move remain available as test evidence; no real user's move was changed.
+- The broader Finland/Taiwan sourced-example improvement pass remains deferred. Live service calls currently use the configured development Clerk and Convex instances.

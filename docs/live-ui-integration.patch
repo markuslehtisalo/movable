@@ -1,0 +1,116 @@
+--- a/src/features/onboarding/onboarding-page.tsx
++++ b/src/features/onboarding/onboarding-page.tsx
+@@ -232,10 +232,10 @@
+                       }}><FileText aria-hidden />Use example</Button>
+                     </div>
+                   </div>
+-                  <div className="rounded-xl bg-muted/65 p-4 text-xs leading-5 text-muted-foreground">This local preview recognizes a few explicit phrases. Anything it can’t read stays blank for you to fill in. Your manual corrections are kept.</div>
++                  <div className="rounded-xl bg-muted/65 p-4 text-xs leading-5 text-muted-foreground">{mode === "live" ? "Movable reads your description with AI. Check the extracted details before continuing. Anything uncertain stays blank, and your corrections are kept." : "This local preview recognizes a few explicit phrases. Anything it can’t read stays blank for you to fill in. Your manual corrections are kept."}</div>
+                   {error && <ErrorMessage message={error} />}
+                   <div className="flex flex-col gap-2 sm:items-start">
+-                    <Button type="submit" size="lg" disabled={!!pending || mode === "live"} className="h-12 w-full px-5 sm:w-auto">
++                    <Button type="submit" size="lg" disabled={!!pending} className="h-12 w-full px-5 sm:w-auto">
+                       {pending ? <><LoaderCircle className="motion-safe:animate-spin" aria-hidden />Reading your details…</> : <>{error ? "Try again" : "Check my details"}<ArrowRight aria-hidden /></>}
+                     </Button>
+                     <Button type="button" variant="ghost" className="h-11 text-muted-foreground" disabled={!!pending} onClick={() => goTo("details")}>Enter details myself</Button>
+@@ -249,31 +249,31 @@
+                   {error && <ErrorMessage message={error} />}
+                   <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+                     <Button type="button" variant="ghost" className="h-11" onClick={() => goTo("describe")}><ArrowLeft aria-hidden />Back</Button>
+-                    <Button type="submit" size="lg" className="h-12 px-5" disabled={mode === "live"}>Review my move<ArrowRight aria-hidden /></Button>
++                    <Button type="submit" size="lg" className="h-12 px-5">Review my move<ArrowRight aria-hidden /></Button>
+                   </div>
+                 </form>}
+ 
+                 {draft.step === "review" && profile && <div className="mt-3 space-y-6">
+-                  <p className="text-sm leading-6 text-muted-foreground">One last look. Your confirmed details will shape this local example plan.</p>
++                  <p className="text-sm leading-6 text-muted-foreground">{mode === "live" ? "One last look. Your confirmed details will shape your personal plan." : "One last look. Your confirmed details will shape this local example plan."}</p>
+                   <ConfirmedJourney profile={profile} />
+                   <div className="space-y-3">
+                     <p className="text-sm font-medium">A starting point for your next chapter</p>
+-                    {["Suggested tasks around your arrival", "A place to track your progress", "Details you can come back to in this browser"].map((item) => <p key={item} className="flex items-start gap-2 text-sm text-muted-foreground"><CircleCheck className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden />{item}</p>)}
+-                  </div>
+-                  <p className="rounded-xl bg-muted/65 p-4 text-xs leading-5 text-muted-foreground">This plan uses illustrative example content. Sources and guidance haven’t been verified. AI and account sync aren’t connected.</p>
+-                  {move && move.id === replacementId && !attempt?.moveId && <p className="rounded-xl border border-primary/25 bg-accent p-4 text-sm leading-6 text-accent-foreground">Building this plan will replace your current move and its saved progress in this browser.</p>}
++                    {["Suggested tasks around your arrival", "A place to track your progress", mode === "live" ? "Progress saved to your account" : "Details you can come back to in this browser"].map((item) => <p key={item} className="flex items-start gap-2 text-sm text-muted-foreground"><CircleCheck className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden />{item}</p>)}
++                  </div>
++                  <p className="rounded-xl bg-muted/65 p-4 text-xs leading-5 text-muted-foreground">{mode === "live" ? "AI personalizes a preparation checklist using your details and available official guidance. Dates are suggested preparation targets. Check the source links before acting." : "This plan uses illustrative example content. Sources and guidance haven’t been verified. AI and account sync aren’t connected."}</p>
++                  {move && move.id === replacementId && !attempt?.moveId && <p className="rounded-xl border border-primary/25 bg-accent p-4 text-sm leading-6 text-accent-foreground">{mode === "live" ? "Building this plan will replace your active account workspace." : "Building this plan will replace your current move and its saved progress in this browser."}</p>}
+                   {attempt && !pending && <p className="text-sm leading-6 text-muted-foreground">{attempt.moveId ? "Your move is created. Continue to finish its plan using the same saved details." : "Your confirmed details are kept for this attempt. Retry to continue."}</p>}
+                   {error && <ErrorMessage message={error} />}
+                   <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+                     {attempt ? <Button asChild variant="ghost" className="h-11"><Link href="/app">Open workspace</Link></Button> : <Button type="button" variant="ghost" className="h-11" onClick={() => goTo("details")}><Pencil aria-hidden />Edit details</Button>}
+-                    <Button size="lg" className="h-12 px-5" disabled={!!pending || mode === "live"} onClick={buildPlan}>
++                    <Button size="lg" className="h-12 px-5" disabled={!!pending} onClick={buildPlan}>
+                       {pending ? <><LoaderCircle className="motion-safe:animate-spin" aria-hidden />{pending === "create" ? "Saving your move…" : pending === "navigate" ? "Opening your plan…" : "Building your plan…"}</> : <>{attempt ? "Retry building my plan" : move?.id === replacementId ? "Replace & build my plan" : "Build my plan"}<ArrowRight aria-hidden /></>}
+                     </Button>
+                   </div>
+-                  <div role="status" className="sr-only">{pending ? "Preparing your local plan. Please wait." : ""}</div>
++                  <div role="status" className="sr-only">{pending ? "Preparing your plan. Please wait." : ""}</div>
+                 </div>}
+               </section>}
+-          <p className="mt-5 flex items-center justify-center gap-2 text-center text-xs leading-5 text-muted-foreground"><span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />{storageWarning ? "Browser storage is unavailable. Keep this tab open to retain your draft." : "Your draft stays in this browser tab. No account needed."}</p>
++          <p className="mt-5 flex items-center justify-center gap-2 text-center text-xs leading-5 text-muted-foreground"><span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />{storageWarning ? "Browser storage is unavailable. Keep this tab open to retain your draft." : mode === "live" ? "Your draft stays in this browser tab until your plan is saved to your account." : "Your draft stays in this browser tab. No account needed."}</p>
+         </div>
+       </div>
+     </main>
+--- a/src/features/workspace/assistant-panel.tsx
++++ b/src/features/workspace/assistant-panel.tsx
+@@ -6,6 +6,7 @@
+ import { Textarea } from "@/components/ui/textarea";
+ import type { ActionReceipt, Message, Task } from "@/lib/movable/contracts";
+ import { dateSchema } from "@/lib/movable/contracts";
++import { useMovable } from "@/lib/movable/client";
+ import { formatDate } from "@/lib/movable/selectors";
+ 
+ function receiptValue(value: string) {
+@@ -32,6 +33,7 @@
+   onText: (text: string) => void; onSend: () => void; onRemoveContext: () => void;
+   onOpen: (task: Task) => void; onEdit: () => void;
+ }) {
++  const { mode } = useMovable();
+   const id = useId();
+   const scroll = useRef<HTMLDivElement>(null);
+   const composer = useRef<HTMLTextAreaElement>(null);
+@@ -46,10 +48,10 @@
+ 
+   return <div className="flex h-full min-h-0 flex-col">
+     <div className="shrink-0 border-b px-5 py-5 pr-12 xl:pr-5">
+-      <div className="flex items-center gap-3"><span className="flex size-9 items-center justify-center rounded-xl bg-foreground text-background"><MessageCircle className="size-4" aria-hidden /></span><div><h2 className="text-sm font-semibold">A little help, along the way</h2><p className="mt-0.5 text-xs text-muted-foreground">Movable · scripted preview</p></div></div>
++      <div className="flex items-center gap-3"><span className="flex size-9 items-center justify-center rounded-xl bg-foreground text-background"><MessageCircle className="size-4" aria-hidden /></span><div><h2 className="text-sm font-semibold">A little help, along the way</h2><p className="mt-0.5 text-xs text-muted-foreground">{mode === "live" ? "Movable · AI assistant" : "Movable · scripted preview"}</p></div></div>
+     </div>
+     <div ref={scroll} onScroll={() => { if (scroll.current) shouldFollow.current = scroll.current.scrollHeight - scroll.current.scrollTop - scroll.current.clientHeight < 80; }} className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 py-5" role="log" aria-label="Conversation with Movable" aria-live="polite" aria-relevant="additions">
+-      {messages.length === 0 && <div className="py-4"><p className="text-sm font-medium">Your plan can change with you.</p><p className="mt-2 text-sm leading-relaxed text-muted-foreground">Ask what comes next, explore a task, or try an arrival and housing update. This preview uses scripted responses.</p></div>}
++      {messages.length === 0 && <div className="py-4"><p className="text-sm font-medium">Your plan can change with you.</p><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{mode === "live" ? "Ask what comes next, explore a task, update your arrival, or draft a message to your university." : "Ask what comes next, explore a task, or try an arrival and housing update. This preview uses scripted responses."}</p></div>}
+       {messages.map((message) => {
+         const selected = tasks.find((task) => task.id === message.selectedTaskId);
+         return <article key={message.id} className={message.role === "user" ? "ml-4 rounded-2xl rounded-br-sm bg-muted p-3.5" : "min-w-0"}>
+@@ -74,7 +76,7 @@
+         </div>
+         {error && <p role="alert" className="mt-2 text-xs leading-relaxed text-destructive">{error} Your message is still here to retry.</p>}
+       </form>
+-      <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground">Scripted interactions. Verify guidance before you act.</p>
++      <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground">{mode === "live" ? "AI can make mistakes. Check official guidance before you act." : "Scripted interactions. Verify guidance before you act."}</p>
+     </div>
+   </div>;
+ }
+--- a/src/features/workspace/workspace-page.tsx
++++ b/src/features/workspace/workspace-page.tsx
+@@ -42,7 +42,7 @@
+         <p className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">A new place. Your own pace.</p>
+         <h1 className="text-4xl leading-tight font-semibold tracking-tight">{phase === "error" ? "Your workspace isn’t available yet." : "Your next chapter starts here."}</h1>
+         <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">{phase === "error" ? error ?? "We couldn’t load your move. Explore the example while your workspace is unavailable." : "Tell us where you’re headed. We’ll bring your preparation, arrival, and first days together in one plan."}</p>
+-        <div className="mt-8 flex flex-wrap gap-3">{mode !== "live" && <Button asChild size="lg" className="h-12 px-5"><Link href="/onboarding">Plan my move<ArrowUpRight aria-hidden /></Link></Button>}<Button asChild variant="outline" size="lg" className="h-12 px-5"><Link href="/demo">Explore an example<ArrowRight aria-hidden /></Link></Button></div>
++        <div className="mt-8 flex flex-wrap gap-3">{phase !== "error" && <Button asChild size="lg" className="h-12 px-5"><Link href="/onboarding">Plan my move<ArrowUpRight aria-hidden /></Link></Button>}<Button asChild variant="outline" size="lg" className="h-12 px-5"><Link href="/demo">Explore an example<ArrowRight aria-hidden /></Link></Button></div>
+         {mode === "local" && <p className="mt-6 text-xs leading-relaxed text-muted-foreground">This prototype saves your move in this browser. No account needed.</p>}
+       </main>
+     </>}
+@@ -127,7 +127,7 @@
+       </div>
+       <Sheet open={assistantOpen} onOpenChange={setAssistantOpen}>
+         <SheetContent className="gap-0 data-[side=right]:h-dvh data-[side=right]:w-full data-[side=right]:sm:max-w-md" onCloseAutoFocus={(event) => { event.preventDefault(); if (!taskId && !arrivalOpen) assistantButton.current?.focus(); }}>
+-          <SheetHeader className="sr-only"><SheetTitle>Ask Movable</SheetTitle><SheetDescription>A scripted conversation about your current move.</SheetDescription></SheetHeader>
++          <SheetHeader className="sr-only"><SheetTitle>Ask Movable</SheetTitle><SheetDescription>{mode === "live" ? "A conversation with AI about your current move." : "A scripted conversation about your current move."}</SheetDescription></SheetHeader>
+           {assistant}
+         </SheetContent>
+       </Sheet>

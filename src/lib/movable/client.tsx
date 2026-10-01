@@ -5,15 +5,18 @@ import type { MovableAdapter, MovableCommands, MoveSnapshot, RuntimeMode } from 
 import { createLocalAdapter } from "./local-adapter";
 
 const Context = createContext<MovableAdapter | null>(null);
+const DraftScopeContext = createContext("local");
 
 /** Future live adapters can be supplied without changing any feature components. */
-export function MovableProvider({ children, mode = "local", adapter }: {
-  children: ReactNode; mode?: RuntimeMode; adapter?: MovableAdapter;
+export function MovableProvider({ children, mode = "local", adapter, storageScope = mode }: {
+  children: ReactNode; mode?: RuntimeMode; adapter?: MovableAdapter; storageScope?: string;
 }) {
   const [store] = useState(() => adapter ?? createLocalAdapter(mode));
   useEffect(() => { store.hydrate(); }, [store]);
-  return <Context.Provider value={store}>{children}</Context.Provider>;
+  return <Context.Provider value={store}><DraftScopeContext.Provider value={storageScope}>{children}</DraftScopeContext.Provider></Context.Provider>;
 }
+
+export function useMovableDraftScope() { return useContext(DraftScopeContext); }
 
 export function useMovable(): MoveSnapshot & MovableCommands {
   const store = useContext(Context);

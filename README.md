@@ -24,8 +24,8 @@ pnpm build
 
 ## Current service boundary
 
-The public release currently uses the labeled browser prototype and isolated example. Its data stays in the browser.
+The live release connects Clerk sign-in, Convex account storage, and OpenAI assistance. `/demo` remains an isolated, scripted example. `NEXT_PUBLIC_MOVABLE_MODE=local` still runs the browser-only prototype without credentials.
 
-The Clerk/Convex/OpenAI backend and live adapter are implemented and deployed to the development Convex instance. A live smoke test covers ownership isolation, extraction, plan generation, task updates, conversation changes, retry handling and message drafting. The feature UI still has explicit live-mode guards; keep local mode until its owners apply the reviewed integration changes. See [the integration handoff](docs/live-integration.md).
+The backend is deployed to the development Convex instance. A live smoke test covers ownership isolation, extraction, plan generation, task updates, conversation changes, retry handling and message drafting. Onboarding preserves text through sign-in and scopes saved build attempts by account. See [the integration handoff](docs/live-integration.md).
 
 See `.env.example` for the intended environment variables. Do not commit secrets.

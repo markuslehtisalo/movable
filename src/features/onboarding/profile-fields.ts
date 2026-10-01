@@ -71,7 +71,7 @@ export type BuildAttempt = {
 
 export const DETAILS_KEY = "movable:onboarding-details:v1";
 
-export function restoreDetails(entryDraft: string | null, savedText: string): {
+export function restoreDetails(entryDraft: string | null, savedText: string, storageKey = DETAILS_KEY): {
   draft: OnboardingDraft; attempt: BuildAttempt | null;
 } {
   const empty: OnboardingDraft = {
@@ -79,7 +79,7 @@ export function restoreDetails(entryDraft: string | null, savedText: string): {
     touched: [], extractedText: null, step: "describe",
   };
   try {
-    const raw = window.sessionStorage.getItem(DETAILS_KEY);
+    const raw = window.sessionStorage.getItem(storageKey);
     if (!raw) return { draft: empty, attempt: null };
     const saved = JSON.parse(raw);
     const draft = saved.draft;

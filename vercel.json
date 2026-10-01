@@ -1,6 +1,4 @@
 {
   "framework": "nextjs",
-  "buildCommand": "pnpm build",
-  "env": { "NEXT_PUBLIC_MOVABLE_MODE": "local" },
-  "build": { "env": { "NEXT_PUBLIC_MOVABLE_MODE": "local" } }
+  "buildCommand": "pnpm build"
 }

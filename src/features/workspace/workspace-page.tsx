@@ -42,7 +42,7 @@ export function WorkspacePage() {
         <p className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">A new place. Your own pace.</p>
         <h1 className="text-4xl leading-tight font-semibold tracking-tight">{phase === "error" ? "Your workspace isn’t available yet." : "Your next chapter starts here."}</h1>
         <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">{phase === "error" ? error ?? "We couldn’t load your move. Explore the example while your workspace is unavailable." : "Tell us where you’re headed. We’ll bring your preparation, arrival, and first days together in one plan."}</p>
-        <div className="mt-8 flex flex-wrap gap-3">{mode !== "live" && <Button asChild size="lg" className="h-12 px-5"><Link href="/onboarding">Plan my move<ArrowUpRight aria-hidden /></Link></Button>}<Button asChild variant="outline" size="lg" className="h-12 px-5"><Link href="/demo">Explore an example<ArrowRight aria-hidden /></Link></Button></div>
+        <div className="mt-8 flex flex-wrap gap-3">{phase !== "error" && <Button asChild size="lg" className="h-12 px-5"><Link href="/onboarding">Plan my move<ArrowUpRight aria-hidden /></Link></Button>}<Button asChild variant="outline" size="lg" className="h-12 px-5"><Link href="/demo">Explore an example<ArrowRight aria-hidden /></Link></Button></div>
         {mode === "local" && <p className="mt-6 text-xs leading-relaxed text-muted-foreground">This prototype saves your move in this browser. No account needed.</p>}
       </main>
     </>}
@@ -127,7 +127,7 @@ function ActiveWorkspace({ move }: { move: Move }) {
       </div>
       <Sheet open={assistantOpen} onOpenChange={setAssistantOpen}>
         <SheetContent className="gap-0 data-[side=right]:h-dvh data-[side=right]:w-full data-[side=right]:sm:max-w-md" onCloseAutoFocus={(event) => { event.preventDefault(); if (!taskId && !arrivalOpen) assistantButton.current?.focus(); }}>
-          <SheetHeader className="sr-only"><SheetTitle>Ask Movable</SheetTitle><SheetDescription>A scripted conversation about your current move.</SheetDescription></SheetHeader>
+          <SheetHeader className="sr-only"><SheetTitle>Ask Movable</SheetTitle><SheetDescription>{mode === "live" ? "A conversation with AI about your current move." : "A scripted conversation about your current move."}</SheetDescription></SheetHeader>
           {assistant}
         </SheetContent>
       </Sheet>

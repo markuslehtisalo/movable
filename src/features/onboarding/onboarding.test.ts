@@ -95,6 +95,13 @@ test("refresh keeps edited text and fields while a new incoming draft starts fre
     const attempt: BuildAttempt = { profile: DEMO_PROFILE, createRequestId: "saved-create", planRequestId: "saved-plan", moveId: "saved-move" };
     values.set(DETAILS_KEY, JSON.stringify({ draft, attempt }));
     assert.deepEqual(restoreDetails(null, draft.text).attempt, attempt);
+    const aliceKey = `${DETAILS_KEY}:live:alice`;
+    const bobKey = `${DETAILS_KEY}:live:bob`;
+    assert.equal(restoreDetails(null, "Alice's move", aliceKey).attempt, null);
+    values.set(aliceKey, JSON.stringify({ draft, attempt }));
+    assert.deepEqual(restoreDetails(null, draft.text, aliceKey).attempt, attempt);
+    assert.equal(restoreDetails(null, "Bob's move", bobKey).attempt, null);
+    assert.equal(restoreDetails(null, "Bob's move", bobKey).draft.text, "Bob's move");
     const newDraft = restoreDetails("A different move", draft.text).draft;
     assert.equal(newDraft.text, "A different move");
     assert.deepEqual(newDraft.fields, EMPTY_FIELDS);

@@ -7,6 +7,7 @@ import { Brand } from "@/components/movable/brand";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { EXAMPLE_PROMPT } from "@/lib/movable/fixtures";
+import { useMovable } from "@/lib/movable/client";
 import { onboardingHref } from "@/lib/movable/draft";
 import { ExamplePreview } from "./example-preview";
 import styles from "./marketing.module.css";
@@ -32,6 +33,15 @@ const faqs = [
 ];
 
 export function MarketingPage() {
+  const { mode } = useMovable();
+  const live = mode === "live";
+  const liveAnswers = [
+    "Sign in, describe your move, and get an AI-personalized preparation plan. Your tasks and conversations are saved to your account. The public example is a separate scripted preview.",
+    faqs[1].answer,
+    "Dates are suggested preparation targets, not official deadlines. Relevant tasks link to reviewed official guidance; check current requirements for your circumstances before acting.",
+    "In your signed-in workspace, AI can explain tasks, update your arrival date, mark tasks complete and draft a university message. It cannot book, apply, or send messages. The public example remains scripted.",
+    "Your signed-in move is saved to your account. The public example is separate, works without signing in and resets on reload. Your onboarding draft stays in this browser tab until you save a plan.",
+  ];
   const [text, setText] = useState("");
   const [exampleFilled, setExampleFilled] = useState(false);
   const [pending, setPending] = useState(false);
@@ -42,7 +52,7 @@ export function MarketingPage() {
     event.preventDefault();
     if (pending) return;
     setPending(true);
-    router.push(onboardingHref(text));
+    router.push(onboardingHref(text, live ? "pending" : "local"));
   }
 
   function fillExample() {
@@ -90,7 +100,7 @@ export function MarketingPage() {
                 </Button>
               </div>
             </form>
-            <p id="composer-hint" className={styles.composerHint}>Browser prototype. No account needed. You’ll review the details next.</p>
+            <p id="composer-hint" className={styles.composerHint}>{live ? "Sign in to save your move. You’ll review every detail before building your plan." : "Browser prototype. No account needed. You’ll review the details next."}</p>
             <span className="sr-only" role="status">{exampleFilled ? "Example added. You can edit it before continuing." : ""}</span>
           </div>
           <ExamplePreview />
@@ -127,10 +137,10 @@ export function MarketingPage() {
           <div className={`${styles.container} ${styles.faqLayout}`}>
             <div><p className={styles.eyebrow}>Before you pack</p><h2 id="faq-title" className={styles.sectionTitle}>A few things<br />to know.</h2><p className="mt-5 max-w-xs text-sm leading-6 text-muted-foreground">An early look at a calmer way to prepare for a move. Here’s what you can expect.</p></div>
             <div className={styles.faqList}>
-              {faqs.map((faq) => (
+              {faqs.map((faq, index) => (
                 <details key={faq.question} className={styles.faqItem}>
                   <summary>{faq.question}<Plus className="size-4 shrink-0 text-muted-foreground" aria-hidden /></summary>
-                  <p>{faq.answer}</p>
+                  <p>{live ? liveAnswers[index] : faq.answer}</p>
                 </details>
               ))}
             </div>

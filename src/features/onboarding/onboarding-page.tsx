@@ -10,7 +10,7 @@ import { MoveSummary } from "@/components/movable/move-summary";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useMovable, newRequestId } from "@/lib/movable/client";
+import { useMovable, useMovableDraftScope, newRequestId } from "@/lib/movable/client";
 import type { MoveProfile } from "@/lib/movable/contracts";
 import { EXAMPLE_PROMPT } from "@/lib/movable/fixtures";
 import { clearOnboardingDraft, readOnboardingDraft, saveOnboardingDraft } from "@/lib/movable/draft";
@@ -43,7 +43,9 @@ function OnboardingFlow() {
   const params = useSearchParams();
   const router = useRouter();
   const { mode, phase, move, tasks, extractProfile, createMove, generatePlan } = useMovable();
-  const [initial] = useState(() => restoreDetails(params.get("draft"), readOnboardingDraft()));
+  const storageScope = useMovableDraftScope();
+  const detailsKey = storageScope === "local" ? DETAILS_KEY : `${DETAILS_KEY}:${storageScope}`;
+  const [initial] = useState(() => restoreDetails(params.get("draft"), readOnboardingDraft(storageScope) || (mode === "live" ? readOnboardingDraft("pending") : ""), detailsKey));
   const [draft, setDraft] = useState(initial.draft);
   const [attempt, setAttempt] = useState<BuildAttempt | null>(initial.attempt);
   const [replacementId, setReplacementId] = useState<string | null>(null);
@@ -58,10 +60,11 @@ function OnboardingFlow() {
 
   useEffect(() => {
     if (finished.current) return;
-    saveOnboardingDraft(draft.text);
-    try { window.sessionStorage.setItem(DETAILS_KEY, JSON.stringify({ draft, attempt })); }
+    saveOnboardingDraft(draft.text, storageScope);
+    if (mode === "live") clearOnboardingDraft("pending");
+    try { window.sessionStorage.setItem(detailsKey, JSON.stringify({ draft, attempt })); }
     catch { queueMicrotask(() => setStorageWarning(true)); }
-  }, [draft, attempt]);
+  }, [draft, attempt, storageScope, detailsKey, mode]);
 
   useEffect(() => {
     if (previousStep.current !== draft.step) heading.current?.focus();
@@ -148,15 +151,15 @@ function OnboardingFlow() {
     function remember(value: BuildAttempt) {
       setAttempt(value);
       // Store the request IDs before calling a command, including across a refresh.
-      try { window.sessionStorage.setItem(DETAILS_KEY, JSON.stringify({ draft, attempt: value })); }
+      try { window.sessionStorage.setItem(detailsKey, JSON.stringify({ draft, attempt: value })); }
       catch { setStorageWarning(true); }
     }
     remember(next);
     try {
       await continuePlan(next, { createMove, generatePlan }, remember, setPending);
       finished.current = true;
-      clearOnboardingDraft();
-      try { window.sessionStorage.removeItem(DETAILS_KEY); } catch { /* The plan remains available in this tab. */ }
+      clearOnboardingDraft(storageScope);
+      try { window.sessionStorage.removeItem(detailsKey); } catch { /* The plan remains available in this tab. */ }
       setPending("navigate");
       router.push("/app");
     } catch (cause) {
@@ -232,10 +235,10 @@ function OnboardingFlow() {
                       }}><FileText aria-hidden />Use example</Button>
                     </div>
                   </div>
-                  <div className="rounded-xl bg-muted/65 p-4 text-xs leading-5 text-muted-foreground">This local preview recognizes a few explicit phrases. Anything it can’t read stays blank for you to fill in. Your manual corrections are kept.</div>
+                  <div className="rounded-xl bg-muted/65 p-4 text-xs leading-5 text-muted-foreground">{mode === "live" ? "Movable reads your description with AI. Check the extracted details before continuing. Anything uncertain stays blank, and your corrections are kept." : "This local preview recognizes a few explicit phrases. Anything it can’t read stays blank for you to fill in. Your manual corrections are kept."}</div>
                   {error && <ErrorMessage message={error} />}
                   <div className="flex flex-col gap-2 sm:items-start">
-                    <Button type="submit" size="lg" disabled={!!pending || mode === "live"} className="h-12 w-full px-5 sm:w-auto">
+                    <Button type="submit" size="lg" disabled={!!pending} className="h-12 w-full px-5 sm:w-auto">
                       {pending ? <><LoaderCircle className="motion-safe:animate-spin" aria-hidden />Reading your details…</> : <>{error ? "Try again" : "Check my details"}<ArrowRight aria-hidden /></>}
                     </Button>
                     <Button type="button" variant="ghost" className="h-11 text-muted-foreground" disabled={!!pending} onClick={() => goTo("details")}>Enter details myself</Button>
@@ -243,37 +246,37 @@ function OnboardingFlow() {
                 </form>}
 
                 {draft.step === "details" && <form onSubmit={review} noValidate className="mt-3 space-y-6">
-                  <p className="text-sm leading-6 text-muted-foreground">{draft.extractedText !== null ? "Here’s what we could pick up. Check it, fill the gaps, and make it yours." : "Start with what you know. All these details are needed to prepare the example plan."}</p>
+                  <p className="text-sm leading-6 text-muted-foreground">{draft.extractedText !== null ? "Here’s what we could pick up. Check it, fill the gaps, and make it yours." : "Start with what you know. These details help us prepare your plan."}</p>
                   <ProfileForm fields={draft.fields} errors={fieldErrors} onChange={changeField} />
                   <CoverageNote unsupported={unsupported} />
                   {error && <ErrorMessage message={error} />}
                   <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
                     <Button type="button" variant="ghost" className="h-11" onClick={() => goTo("describe")}><ArrowLeft aria-hidden />Back</Button>
-                    <Button type="submit" size="lg" className="h-12 px-5" disabled={mode === "live"}>Review my move<ArrowRight aria-hidden /></Button>
+                    <Button type="submit" size="lg" className="h-12 px-5">Review my move<ArrowRight aria-hidden /></Button>
                   </div>
                 </form>}
 
                 {draft.step === "review" && profile && <div className="mt-3 space-y-6">
-                  <p className="text-sm leading-6 text-muted-foreground">One last look. Your confirmed details will shape this local example plan.</p>
+                  <p className="text-sm leading-6 text-muted-foreground">{mode === "live" ? "One last look. Your confirmed details will shape your personal plan." : "One last look. Your confirmed details will shape this local example plan."}</p>
                   <ConfirmedJourney profile={profile} />
                   <div className="space-y-3">
                     <p className="text-sm font-medium">A starting point for your next chapter</p>
-                    {["Suggested tasks around your arrival", "A place to track your progress", "Details you can come back to in this browser"].map((item) => <p key={item} className="flex items-start gap-2 text-sm text-muted-foreground"><CircleCheck className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden />{item}</p>)}
+                    {["Suggested tasks around your arrival", "A place to track your progress", mode === "live" ? "Progress saved to your account" : "Details you can come back to in this browser"].map((item) => <p key={item} className="flex items-start gap-2 text-sm text-muted-foreground"><CircleCheck className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden />{item}</p>)}
                   </div>
-                  <p className="rounded-xl bg-muted/65 p-4 text-xs leading-5 text-muted-foreground">This plan uses illustrative example content. Sources and guidance haven’t been verified. AI and account sync aren’t connected.</p>
-                  {move && move.id === replacementId && !attempt?.moveId && <p className="rounded-xl border border-primary/25 bg-accent p-4 text-sm leading-6 text-accent-foreground">Building this plan will replace your current move and its saved progress in this browser.</p>}
+                  <p className="rounded-xl bg-muted/65 p-4 text-xs leading-5 text-muted-foreground">{mode === "live" ? "AI personalizes a preparation checklist using your details and available official guidance. Dates are suggested preparation targets. Check the source links before acting." : "This plan uses illustrative example content. Sources and guidance haven’t been verified. AI and account sync aren’t connected."}</p>
+                  {move && move.id === replacementId && !attempt?.moveId && <p className="rounded-xl border border-primary/25 bg-accent p-4 text-sm leading-6 text-accent-foreground">{mode === "live" ? "Building this plan will replace your active account workspace." : "Building this plan will replace your current move and its saved progress in this browser."}</p>}
                   {attempt && !pending && <p className="text-sm leading-6 text-muted-foreground">{attempt.moveId ? "Your move is created. Continue to finish its plan using the same saved details." : "Your confirmed details are kept for this attempt. Retry to continue."}</p>}
                   {error && <ErrorMessage message={error} />}
                   <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
                     {attempt ? <Button asChild variant="ghost" className="h-11"><Link href="/app">Open workspace</Link></Button> : <Button type="button" variant="ghost" className="h-11" onClick={() => goTo("details")}><Pencil aria-hidden />Edit details</Button>}
-                    <Button size="lg" className="h-12 px-5" disabled={!!pending || mode === "live"} onClick={buildPlan}>
+                    <Button size="lg" className="h-12 px-5" disabled={!!pending} onClick={buildPlan}>
                       {pending ? <><LoaderCircle className="motion-safe:animate-spin" aria-hidden />{pending === "create" ? "Saving your move…" : pending === "navigate" ? "Opening your plan…" : "Building your plan…"}</> : <>{attempt ? "Retry building my plan" : move?.id === replacementId ? "Replace & build my plan" : "Build my plan"}<ArrowRight aria-hidden /></>}
                     </Button>
                   </div>
-                  <div role="status" className="sr-only">{pending ? "Preparing your local plan. Please wait." : ""}</div>
+                  <div role="status" className="sr-only">{pending ? "Preparing your plan. Please wait." : ""}</div>
                 </div>}
               </section>}
-          <p className="mt-5 flex items-center justify-center gap-2 text-center text-xs leading-5 text-muted-foreground"><span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />{storageWarning ? "Browser storage is unavailable. Keep this tab open to retain your draft." : "Your draft stays in this browser tab. No account needed."}</p>
+          <p className="mt-5 flex items-center justify-center gap-2 text-center text-xs leading-5 text-muted-foreground"><span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />{storageWarning ? "Browser storage is unavailable. Keep this tab open to retain your draft." : mode === "live" ? "Your draft stays in this browser tab until your plan is saved to your account." : "Your draft stays in this browser tab. No account needed."}</p>
         </div>
       </div>
     </main>

@@ -2,7 +2,7 @@
 
 ## Release decision
 
-The user prioritized a public deployment and declined taking over the UI agents' files. Feature files remain unchanged. `vercel.json` intentionally deploys the working, clearly labeled local/browser prototype. `/demo` stays isolated in memory. Credentials and local environment files are excluded by `.vercelignore`.
+The user subsequently authorized integration of the finished feature files and prioritized the complete live release. Onboarding, marketing and workspace now support live account mode. `/demo` stays isolated in memory. Credentials and local environment files are excluded by `.vercelignore`.
 
 ## Implemented and deployed to development Convex
 
@@ -20,16 +20,28 @@ The user prioritized a public deployment and declined taking over the UI agents'
 - `pnpm exec tsx --test src/features/onboarding/onboarding.test.ts`: all 6 passed.
 - `pnpm build`: passed in local release mode.
 - `node scripts/smoke-live.mjs`: passed against development Convex and real OpenAI requests. Checks anonymous rejection, two synthetic authenticated identities, foreign move/task rejection, idempotent creation, extraction, plan generation, source presence, completion persistence, conversation date/housing changes, retries, and message drafts. The script cleans up its synthetic data.
-- This is backend identity isolation testing, not a two-person Clerk browser sign-in test. Full live browser QA is still pending.
+- This is backend identity isolation testing, not a two-person Clerk browser sign-in test. Hosted browser verification now also passes: real Clerk test-user sign-in, marketing draft recovery, AI profile extraction, country selection by keyboard, plan generation, task completion, conversation arrival/housing updates, receipts, and persistence after refresh.
 
-## Remaining feature integration
+## Completed feature integration
 
-`docs/live-ui-integration.patch` is prepared for the feature owners. It removes onboarding's unconditional live-mode disabled states, updates local-only copy by mode and enables the live empty-workspace CTA. It has not been applied or tested as a feature change. The owners should also scope persisted onboarding attempts to the account/mode so an old local or other-account attempt cannot be reused, and update marketing's current local-prototype copy before a live account release.
-
-Do not turn the public deployment to live mode until these UI changes and a real Clerk browser sign-in have been checked. Vercel's local-mode overrides in `vercel.json` must then be removed, with the Clerk and Convex frontend environment variables configured on the intended deployment.
+- Removed onboarding's live-mode disabled states and enabled the live empty-workspace CTA.
+- Updated marketing, onboarding and assistant copy to distinguish live AI/account storage from the scripted public example.
+- Scoped session drafts and saved build attempts by account; preserved marketing text through Clerk redirects.
+- Removed the deployment's forced local-mode override and configured Vercel production plus release-branch preview variables.
+- Repository-local Git identity now uses the owner's GitHub noreply address. A new release commit replaces the invalid macOS-local author for deployment checks; existing history is preserved.
+- Real native Clerk session token accepted by Convex. The configured native integration does not need the legacy `convex` JWT template.
+- Final checks: ESLint and TypeScript passed; all 19 shared/onboarding tests passed, including account-scoped attempt recovery. Local webpack production build passed. Vercel's normal Turbopack build passed; local Turbopack cannot follow this temporary worktree's external node_modules symlink.
 
 ## Operations
 
-`pnpm exec convex dev --once` deploys the backend to the currently selected development deployment. The user's existing watcher can continue running. No extra Next.js dev server was started. No branch, commit, staging or dependency installation was performed.
+`pnpm exec convex dev --once` deploys the backend to the currently selected development deployment. The user's existing watcher can continue running. No extra Next.js dev server was started. Integration is isolated in `/private/tmp/movable-improvement` on `integration/live-release`; no dependencies were added.
 
-Vercel login was refreshed. The production project is `lzrd-tech/movable`, publicly available at https://movable-lilac.vercel.app. The deployment completed successfully and both `/` and `/demo` returned HTTP 200. The public site remains in local/browser-prototype mode as described above.
+Vercel login was refreshed. The production project is `lzrd-tech/movable`, publicly available at https://movable-lilac.vercel.app. Both `usemovable.com` and `www.usemovable.com` resolve to Vercel with working HTTPS. The live release's hosted build succeeded; the tested live deployment was promoted to the production domains on 1 October 2026.
+
+## Final hosted review
+
+- Tested deployment: `movable-e1h2hpb6u-lzrd-tech.vercel.app` (release commit `58c20f1`).
+- The browser test completed exchange details, then asked to arrive two weeks later and confirmed housing. The saved plan shows 29 January 2027, 2/12 completed tasks, and both action receipts after refresh.
+- Desktop workspace and 390 px public-demo screenshots were reviewed. The demo remains labeled scripted, starts separately at 1/12 complete, and does not replace the account move.
+- A development-only Clerk smoke account and its synthetic move remain available as test evidence; no real user's move was changed.
+- The broader Finland/Taiwan sourced-example improvement pass remains deferred. Live service calls currently use the configured development Clerk and Convex instances.

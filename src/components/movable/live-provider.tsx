@@ -39,7 +39,7 @@ function AuthenticatedWorkspace({ children }: { children: ReactNode }) {
   } else if (personal && !isSignedIn) {
     content = <main className="mx-auto max-w-xl px-6 py-20"><h1 className="text-2xl font-semibold">Your next chapter, saved.</h1><p className="mt-4 text-muted-foreground">Sign in to plan your move and return to your progress.</p><Button asChild className="mt-6"><Link href="/sign-in">Sign in</Link></Button></main>;
   }
-  return <MovableProvider key={`${userId ?? "guest"}:${isAuthenticated}`} mode="live" adapter={adapter}>
+  return <MovableProvider key={`${userId ?? "guest"}:${isAuthenticated}`} mode="live" adapter={adapter} storageScope={`live:${userId ?? "guest"}`}>
     {personal && isSignedIn && <div className="flex items-center justify-end gap-3 border-b bg-card px-5 py-2 text-xs text-muted-foreground"><span>Your account</span><UserButton /></div>}
     {content}
   </MovableProvider>;

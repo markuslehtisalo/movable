@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { ActionReceipt, Message, Task } from "@/lib/movable/contracts";
 import { dateSchema } from "@/lib/movable/contracts";
+import { useMovable } from "@/lib/movable/client";
 import { formatDate } from "@/lib/movable/selectors";
 
 function receiptValue(value: string) {
@@ -32,6 +33,7 @@ export function AssistantPanel({ messages, tasks, contextTask, text, pending, er
   onText: (text: string) => void; onSend: () => void; onRemoveContext: () => void;
   onOpen: (task: Task) => void; onEdit: () => void;
 }) {
+  const { mode } = useMovable();
   const id = useId();
   const scroll = useRef<HTMLDivElement>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
@@ -46,10 +48,10 @@ export function AssistantPanel({ messages, tasks, contextTask, text, pending, er
 
   return <div className="flex h-full min-h-0 flex-col">
     <div className="shrink-0 border-b px-5 py-5 pr-12 xl:pr-5">
-      <div className="flex items-center gap-3"><span className="flex size-9 items-center justify-center rounded-xl bg-foreground text-background"><MessageCircle className="size-4" aria-hidden /></span><div><h2 className="text-sm font-semibold">A little help, along the way</h2><p className="mt-0.5 text-xs text-muted-foreground">Movable · scripted preview</p></div></div>
+      <div className="flex items-center gap-3"><span className="flex size-9 items-center justify-center rounded-xl bg-foreground text-background"><MessageCircle className="size-4" aria-hidden /></span><div><h2 className="text-sm font-semibold">A little help, along the way</h2><p className="mt-0.5 text-xs text-muted-foreground">{mode === "live" ? "Movable · AI assistant" : "Movable · scripted preview"}</p></div></div>
     </div>
     <div ref={scroll} onScroll={() => { if (scroll.current) shouldFollow.current = scroll.current.scrollHeight - scroll.current.scrollTop - scroll.current.clientHeight < 80; }} className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 py-5" role="log" aria-label="Conversation with Movable" aria-live="polite" aria-relevant="additions">
-      {messages.length === 0 && <div className="py-4"><p className="text-sm font-medium">Your plan can change with you.</p><p className="mt-2 text-sm leading-relaxed text-muted-foreground">Ask what comes next, explore a task, or try an arrival and housing update. This preview uses scripted responses.</p></div>}
+      {messages.length === 0 && <div className="py-4"><p className="text-sm font-medium">Your plan can change with you.</p><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{mode === "live" ? "Ask what comes next, explore a task, update your arrival, or draft a message to your university." : "Ask what comes next, explore a task, or try an arrival and housing update. This preview uses scripted responses."}</p></div>}
       {messages.map((message) => {
         const selected = tasks.find((task) => task.id === message.selectedTaskId);
         return <article key={message.id} className={message.role === "user" ? "ml-4 rounded-2xl rounded-br-sm bg-muted p-3.5" : "min-w-0"}>
@@ -74,7 +76,7 @@ export function AssistantPanel({ messages, tasks, contextTask, text, pending, er
         </div>
         {error && <p role="alert" className="mt-2 text-xs leading-relaxed text-destructive">{error} Your message is still here to retry.</p>}
       </form>
-      <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground">Scripted interactions. Verify guidance before you act.</p>
+      <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground">{mode === "live" ? "AI can make mistakes. Check official guidance before you act." : "Scripted interactions. Verify guidance before you act."}</p>
     </div>
   </div>;
 }
